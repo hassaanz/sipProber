@@ -6,9 +6,12 @@
     <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
 
     <script>
+        function refreshOne(ipAddr) {
+
+        }
         setInterval(function(){
             $.get( "/devices", function( data ) {
-                var table="<table class='table table-bordered' ><tr><th>Name</th><th>IP</th><th>Status</th></tr>"
+                var table="<table class='table table-bordered' ><tr><th>Name</th><th>IP</th><th>Status</th><th>Action</th></tr>"
                 for(var key in data){
                     table += "<tr><td>";
                     table += key;
@@ -21,7 +24,9 @@
                         table += "<span class='label label-danger'>"
                     }
                     table += data[key].status;
-                    table += "</span></td></tr>";
+                    table += "</span></td>";
+                    table += "<td class='text-center'><button><span class='glyphicon glyphicon-refresh text-info' onClick='refreshOne('" + data[key].ip + "')'></span></button></td>"
+                    table += "</tr>";
 
                 }
                 table += "</table>"
@@ -32,6 +37,7 @@
     </script>
 </head>
 <body>
+    <button class="btn btn-primary">Refresh All</button>
     <div id='status' style='width:550px'>
     </div>
 </body>

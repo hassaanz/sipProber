@@ -19,16 +19,17 @@ var sip = require('sip');
 var http = require('http');
 var bodyParser = require('body-parser');
 var email = require('emailjs/email');
+var pgHandler = require('./pgIPGetter');
 
 
 app.use(express.static('public'));
-app.use(cors())
-app.set('port', (process.env.PORT || 8080))
+app.use(cors());
+app.set('port', (process.env.PORT || 8080));
 app.use(bodyParser.json());
 
-var messageTimer = null
+var messageTimer = null;
 
-console.log("app starting")
+console.log("app starting");
 
 //Generates a random string, used in the options message
 function rstring() { return Math.floor(Math.random()*1e6).toString(); }
@@ -42,11 +43,23 @@ sip.start({}, function(rq) {});
 pollDevices();
 messageTimer = setInterval(pollDevices, 121000);
 
-function pollDevices(){
-    for(var i=0; i< config.servers.length; i++){
-        var server = config.servers[i];
-        sendOptions(server.ip, server.name)
-    }
+function pollDevices() {
+	pgHandler.getIps(function(err, res) {
+		var server;
+		if (err) {
+			console.log(err);
+		    for(var i=0; i< config.servers.length; i++){
+		        server = config.servers[i];
+		        sendOptions(server.ip, server.name);
+		    }
+		} else {
+			config.servers = res;
+			for(var j=0; j< config.servers.length; j++){
+		        server = config.servers[j];
+		        sendOptions(server.ip, server.name);
+		    }
+		}
+	});
 }
 
 //sends an outbound email for status changes
@@ -61,14 +74,14 @@ function sendEmail(name, data) {
 
     var sendParams = config.notifications.email.message;
     sendParams.subject = "SIP Stack for " + name + " is " + data.status;
-    sendParams.text = "Server: " + name + "\nIP: " + data.ip + "\nStatus: " + data.status
+    sendParams.text = "Server: " + name + "\nIP: " + data.ip + "\nStatus: " + data.status;
 
-    console.log("sending email to " + sendParams.to)
+    console.log("sending email to " + sendParams.to);
     server.send(sendParams, function(err, message) {
         if(err){
-            console.log("ERROR sending email: " + err)
+            console.log("ERROR sending email: " + err);
         }else{
-            console.log("email sent")
+            console.log("email sent");
         }
     });
 
@@ -104,15 +117,10 @@ function sendWebHook(name, data) {
     console.log("calling webhook");
     post_req.write(JSON.stringify(data));
     post_req.end();
-
 }
-
 //handles sending an options message to a server
 function sendOptions(baseIp, name){
-
     ip = "sip:" + baseIp + ":5060";
-
-
     sip.send({
         method: 'OPTIONS',
         uri: ip,
@@ -128,18 +136,15 @@ function sendOptions(baseIp, name){
 
         var status = {
             ip: baseIp
-        }
-
+        };
         if(rs.status == 200){
-            status.status = "up"
-            console.log(name + " UP")
+            status.status = "up";
+            console.log(name + " UP");
         }
         else{
-            status.status = "down"
-            console.log(name + " DOWN")
-
+            status.status = "down";
+            console.log(name + " DOWN");
         }
-
         var oldData = devices[name];
 
         if(oldData != null && oldData.status != status.status){
@@ -154,24 +159,48 @@ function sendOptions(baseIp, name){
     });
 }
 
-
-
-app.listen(app.get('port'), function() {
-    console.log("SIP Verification app is running at localhost:" + app.get('port'))
-
-})
-
+pgHandler.getIps(function(err, res) {
+	var server;
+	if (err) {
+		console.log('Error connecting db. Using default list form config.json');
+		app.listen(app.get('port'), function() {
+		    console.log("SIP Verification app is running at localhost:" + app.get('port'));
+		});
+	} else {
+		console.log('Updated Config from db');
+		config.servers = res;
+		app.listen(app.get('port'), function() {
+		    console.log("SIP Verification app is running at localhost:" + app.get('port'));
+		});
+	}
+});
 
 app.get('/devices', function(request, response){
     response.send(devices);
-})
+});
 
 app.get('/', function(request, response){
     response.sendFile(path.join(__dirname,"index.html"));
-})
+});
 
+app.get('/refresh', function(request, response) {
+	pgHandler.getIps(function(err, res) {
+		var server;
+		if (err) {
+			console.log('Error connecting db. Using default list form config.json');
+			res.send('Error connecting db. Using default list form config.json');
+		} else {
+			config.servers = res;
+			console.log('Updated Config from db');
+			res.send(res);
+		}
+	});
+});
+
+app.get('/refreshOne/:ID', function(req, res) {
+
+});
 app.post('/webhooktest', function(req, res){
     console.log('webhook received: ' + JSON.stringify(req.body));
     res.send();
-
-})
+});
