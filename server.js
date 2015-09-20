@@ -87,6 +87,16 @@ function sendEmail(name, data) {
 
 }
 
+function findServerFromIP(ip) {
+	for (var i = 0; i < config.servers.length; i++) {
+		var server = config.servers[i];
+		if (server.ip == ip) {
+			return server;
+		}
+	}
+	return null;
+}
+
 //makes the outbound POST for a webhook when the status changes.
 function sendWebHook(name, data) {
 
@@ -188,18 +198,22 @@ app.get('/refresh', function(request, response) {
 		var server;
 		if (err) {
 			console.log('Error connecting db. Using default list form config.json');
-			res.send('Error connecting db. Using default list form config.json');
+			response.send('Error connecting db. Using default list form config.json');
 		} else {
 			config.servers = res;
 			console.log('Updated Config from db');
-			res.send(res);
+			response.send(res);
 		}
 	});
 });
 
-app.get('/refreshOne/:ID', function(req, res) {
-
+app.get('/refreshOne', function(req, res) {
+	var ip = req.query.ip;
+	var serverInfo = findServerFromIP(ip);
+	console.log('got req to refresh Server: %j ', serverInfo);
+	sendOptions(serverInfo.ip, serverInfo.name);
 });
+
 app.post('/webhooktest', function(req, res){
     console.log('webhook received: ' + JSON.stringify(req.body));
     res.send();
