@@ -13,7 +13,8 @@
     "express": "~4.9.x",
     "pg": "^4.4.2",
     "request": "*",
-    "sip": "*"
+    "sip": "*",
+    "socket.io": "^1.3.7"
   },
   "license": "MPLv2"
 }
