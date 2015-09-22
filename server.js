@@ -48,6 +48,7 @@ messageTimer = setInterval(pollDevices, 121000);
 
 function handlerStatus(status) {
 	sendOptions(status);
+	io.emit('serverInfo', status);
 }
 function pollDevices() {
 	console.log('.');
