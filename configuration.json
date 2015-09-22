@@ -1,4 +1,8 @@
 {
+	"sipserver":{
+		"port":"5999",
+		"address":"127.0.0.1"
+	},
 	"webserver":{
 		"interval":"12100",
 		"port":"8080"

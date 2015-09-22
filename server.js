@@ -40,7 +40,12 @@ function rstring() { return Math.floor(Math.random()*1e6).toString(); }
 
 var devices = {};
 
-sip.start({}, function(rq) {
+sipOptions = {
+		"port": config.sipserver.port,
+		"address": config.sipserver.address
+	};
+
+sip.start(sipOptions, function(rq) {
 	console.log('Sip started');
 });
 
