@@ -41,10 +41,10 @@ var devices = {};
 
 sip.start({}, function(rq) {
 	console.log('Sip started');
-	pollDevices();
 });
 
-
+pollDevices();
+messageTimer = setInterval(pollDevices, 121000);
 
 function handlerStatus(status) {
 	sendOptions(status);
@@ -187,9 +187,9 @@ pgHandler.getIps(function(err, res) {
 		config.servers = res;
 		httpServer.listen(app.get('port'), function() {
 			console.log("SIP Verification app is running at localhost:" + app.get('port'));
-			pollDevices();
+			//pollDevices();
 			//timeout in the sip library is 120000 and is not configurable, lets set our poll higher than that so we don't have more than 1 ping at a time
-			messageTimer = setInterval(pollDevices, 121000);
+			//messageTimer = setInterval(pollDevices, 121000);
 		});
 	}
 });

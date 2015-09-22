@@ -1,7 +1,8 @@
 var pg = require('pg');
 
-var connStr = "postgres://postgres:postgres@127.0.0.1/hassaan";
-var query = "select ip_address from (select locations.ip_address, family(locations.ip_address::inet) as type from locations where locations.probe is not null) a where type = 4"
+var config = require('./configuration.json');
+var connStr = config.database.connStr;
+var query = config.database.sql;
 
 var getIps = function(cb) {
 	pg.connect(connStr, function(err, client, done) {
@@ -21,6 +22,14 @@ var getIps = function(cb) {
 						ip: rows[i].ip_address
 					});
 				}
+				configIps.push( {
+					name: "Server 9999",
+					ip: "192.168.56.4"
+				});
+				configIps.push( {
+					name: "Server 9998",
+					ip: "192.168.56.3"
+				});
 				cb(null, configIps);
 				done();
 			}

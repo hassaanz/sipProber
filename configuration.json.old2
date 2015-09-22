@@ -1,8 +1,4 @@
 {
-	"database":{
-		"connStr":"postgres://postgres:sms003@192.168.56.2/spectrum",
-		"sql":"select ip_address from (select locations.ip_address, family(locations.ip_address::inet) as type from locations where locations.probe is not null) a where type = 4"
-	},
     "servers":[
         {
             "name":"Morbo",
