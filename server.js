@@ -24,9 +24,11 @@ var pgHandler = require('./pgIPGetter');
 var httpServer = http.Server(app);
 var io = require('socket.io')(httpServer);
 
+var config = require('./configuration.json');
+
 app.use(express.static('public'));
 app.use(cors());
-app.set('port', (process.env.PORT || 8080));
+app.set('port', config.webserver.port);
 app.use(bodyParser.json());
 
 var messageTimer = null;
@@ -36,7 +38,6 @@ console.log("app starting");
 //Generates a random string, used in the options message
 function rstring() { return Math.floor(Math.random()*1e6).toString(); }
 
-var config = require('./configuration.json');
 var devices = {};
 
 sip.start({}, function(rq) {
@@ -44,7 +45,7 @@ sip.start({}, function(rq) {
 });
 
 pollDevices();
-messageTimer = setInterval(pollDevices, 121000);
+messageTimer = setInterval(pollDevices, config.webserver.interval);
 
 function handlerStatus(status) {
 	sendOptions(status);
@@ -188,9 +189,6 @@ pgHandler.getIps(function(err, res) {
 		config.servers = res;
 		httpServer.listen(app.get('port'), function() {
 			console.log("SIP Verification app is running at localhost:" + app.get('port'));
-			//pollDevices();
-			//timeout in the sip library is 120000 and is not configurable, lets set our poll higher than that so we don't have more than 1 ping at a time
-			//messageTimer = setInterval(pollDevices, 121000);
 		});
 	}
 });
