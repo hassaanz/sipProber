@@ -16,14 +16,14 @@ angular.module('sipStack', ['btford.socket-io', 'ngAnimate'])
 		$scope.servers = data;
 		for (var i = 0; i < $scope.servers.length; i++) {
 			$scope.servers[i].show = true;
-		};
+		}
 	});
 	socket.on('serverInfo', function(data) {
+		data.show = true;
 		console.log('Got server update.');
 		for (var i = 0; i < $scope.servers.length; i++) {
 			if (data.ip === $scope.servers[i].ip) {
 				$scope.servers[i] = data;
-				$scope.servers[i].show = true;
 			}
 		}
 	});
@@ -38,10 +38,10 @@ angular.module('sipStack', ['btford.socket-io', 'ngAnimate'])
 		socket.emit('serverInfo', data);
 	};
 	$scope.getStatusClass = function(status) {
-		if (status === 'down') {
+		if (status == 'down') {
 			return 'label-danger';
 		}
-		if (status === 'up') {
+		if (status == 'up') {
 			return 'label-success';
 		}
 	};
