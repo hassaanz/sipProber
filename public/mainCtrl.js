@@ -15,7 +15,10 @@ angular.module('sipStack', ['btford.socket-io', 'ngAnimate'])
 		// console.log(data);
 		$scope.servers = data;
 		for (var i = 0; i < $scope.servers.length; i++) {
-			$scope.servers[i].show = true;
+			if ($scope.servers[i].status)
+				$scope.servers[i].show = true;
+			else
+				$scope.servers[i].show = false;
 		}
 	});
 	socket.on('serverInfo', function(data) {
@@ -31,11 +34,13 @@ angular.module('sipStack', ['btford.socket-io', 'ngAnimate'])
 		console.log(err);
 	});
 	$scope.refreshOne = function(serverData) {
-		console.log('Requesting server info.');
-		serverData.show = false;
-		var data = {ip: serverData.ip, name: serverData.name};
-		// console.log(data);
-		socket.emit('serverInfo', data);
+		if (serverData.show === true) {
+			console.log('Requesting server info.');
+			serverData.show = false;
+			var data = {ip: serverData.ip, name: serverData.name};
+			// console.log(data);
+			socket.emit('serverInfo', data);
+		}
 	};
 	$scope.getStatusClass = function(status) {
 		if (status == 'down') {
